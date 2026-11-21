@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,9 +21,9 @@ export default function MainLayout({ children }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 md:block">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xl font-bold"
+            className="inline-flex items-center gap-1 text-xl font-bold"
           >
-            <span aria-hidden="true">🍓</span>
+            <Image src="/icon.svg" alt="" width={20} height={20} unoptimized />
             JamJar
           </Link>
 
