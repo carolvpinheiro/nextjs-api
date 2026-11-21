@@ -54,7 +54,7 @@ export default function MainLayout({ children }) {
 
       <div className="flex min-w-0 flex-col md:min-h-dvh">
         {/* reder the current page */}
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8">
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 py-8 sm:px-8">
           {children}
         </main>
 
