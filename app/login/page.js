@@ -98,61 +98,78 @@ export default function LoginPage() {
     return <p role="status">Checking your session…</p>;
   }
 
+  function handleSignOut() {
+    // remove the saved session and show the sign-in form again
+    sessionStorage.removeItem(SESSION_KEY);
+    setSession(null);
+  }
+
   return (
-    <section className="max-w-md rounded-xl border border-[#E9E1E7] bg-white p-6 shadow-sm">
-      <h1 className="mb-4 text-2xl font-bold">Sign in</h1>
+    <div className="flex flex-1 flex-col">
+      <section className="max-w-md rounded-xl border border-[#E9E1E7] bg-white p-6 shadow-sm">
+        <h1 className="mb-4 text-2xl font-bold">Sign in</h1>
 
-      {error && (
-        <p role="alert" className="mb-4 text-sm text-red-700">
-          {error}
-        </p>
-      )}
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-red-700">
+            {error}
+          </p>
+        )}
 
-      {/* use a ternary to show the signed-in view or the login form */}
-      {session ? (
-        <div className="space-y-3">
-          <p>Signed in as {session.email}.</p>
-          <Link
-            href="/projects"
-            className="font-semibold text-[#21665E] underline"
-          >
-            View projects
-          </Link>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <fieldset disabled={isSubmitting} className="space-y-4">
-            <label className="block text-sm font-medium">
-              Email
-              <input
-                type="email"
-                name="email"
-                autoComplete="username"
-                required
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </label>
-
-            <label className="block text-sm font-medium">
-              Password
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                required
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48] disabled:opacity-60"
+        {/* use a ternary to show the signed-in view or the login form */}
+        {session ? (
+          <div className="space-y-3">
+            <p>Signed in as {session.email}.</p>
+            <Link
+              href="/projects"
+              className="font-semibold text-[#21665E] underline"
             >
-              {isSubmitting ? "Signing in…" : "Sign in"}
-            </button>
-          </fieldset>
-        </form>
+              View projects
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <fieldset disabled={isSubmitting} className="space-y-4">
+              <label className="block text-sm font-medium">
+                Email
+                <input
+                  type="email"
+                  name="email"
+                  autoComplete="username"
+                  required
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+
+              <label className="block text-sm font-medium">
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  required
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48] disabled:opacity-60"
+              >
+                {isSubmitting ? "Signing in…" : "Sign in"}
+              </button>
+            </fieldset>
+          </form>
+        )}
+      </section>
+      {session && (
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-auto self-start rounded-lg border border-[#21665E] px-4 py-2 font-medium text-[#21665E] hover:bg-[#21665E]/10"
+        >
+          Sign out
+        </button>
       )}
-    </section>
+    </div>
   );
 }
