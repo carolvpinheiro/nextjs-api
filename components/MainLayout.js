@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // menu links
-const navigation = [{ href: "/", label: "Home" }];
+const navigation = [
+  { href: "/", label: "Home" },
+  { href: "/login", label: "Sign in" },
+];
 
 export default function MainLayout({ children }) {
   // use current path to highlight the open page in the menu
