@@ -32,6 +32,19 @@ export default function ProjectList({ initialProjects }) {
     setForm(null);
   }
 
+  function handleDeleteProject(project) {
+    const confirmed = window.confirm(`Delete "${project.name}"?`);
+    if (!confirmed) return;
+    // keep every project except the one selected for deletion
+    setProjects((currentProjects) =>
+      currentProjects.filter((item) => item.id !== project.id)
+    );
+    // close the edit form if it belongs to the deleted project
+    setForm((currentForm) =>
+      currentForm?.project?.id === project.id ? null : currentForm
+    );
+  }
+
   return (
     <>
       <button
@@ -68,6 +81,7 @@ export default function ProjectList({ initialProjects }) {
                 onEdit={(selectedProject) =>
                   setForm({ project: selectedProject })
                 }
+                onDelete={handleDeleteProject}
               />
             </li>
           ))}
