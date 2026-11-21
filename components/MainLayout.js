@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // menu links
-const navigation = [{ href: "/", label: "Home" }];
+const navigation = [
+  { href: "/", label: "Home" },
+  { href: "/projects", label: "Projects" },
+];
 
 export default function MainLayout({ children }) {
   // use current path to highlight the open page in the menu
@@ -56,7 +59,7 @@ export default function MainLayout({ children }) {
         </main>
 
         <footer className="border-t border-[#E9E1E7]">
-          <div className="mx-auto max-w-6xl px-5 py-4 text-sm text-[#65586B] sm:px-8">
+          <div className="mx-auto max-w-8xl px-5 py-4 text-sm text-[#65586B] sm:px-8">
             JamJar · Project Management Workspace
           </div>
         </footer>
