@@ -8,30 +8,47 @@ import ProjectForm from "./ProjectForm";
 export default function ProjectList({ initialProjects }) {
   // use state to store and set all projects
   const [projects, setProjects] = useState(initialProjects);
-  // use state to check the project edition
-  const [editingProject, setEditingProject] = useState(null);
+  // use null when the form is closed and store the project when editing
+  const [form, setForm] = useState(null);
 
   function handleSaveProject(values) {
-    setProjects((currentProjects) =>
-      currentProjects.map((project) =>
-        // update only the project whose ID matches the one being edited nd keep its existing fields
-        project.id === editingProject.id ? { ...project, ...values } : project
-      )
-    );
-    // reset editingProject state
-    setEditingProject(null);
+    const editingProject = form.project;
+
+    if (editingProject) {
+      // update the selected project and preserve its existing fields
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === editingProject.id ? { ...project, ...values } : project
+        )
+      );
+    } else {
+      // generate a temporary ID until the API provides one
+      const randomId = crypto.getRandomValues(new Uint32Array(4)).join("-");
+      const newProject = { ...values, id: `mock-${randomId}` };
+
+      setProjects((currentProjects) => [newProject, ...currentProjects]);
+    }
+
+    setForm(null);
   }
 
   return (
     <>
-      {editingProject && (
+      <button
+        type="button"
+        onClick={() => setForm({ project: null })}
+        className="mb-4 rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#21665E]"
+      >
+        + New project
+      </button>
+      {form && (
         <div className="mb-6">
           {/* reset the form fields when I select a different project */}
           <ProjectForm
-            key={editingProject.id}
-            project={editingProject}
+            key={form.project?.id ?? "new-project"}
+            project={form.project}
             onSave={handleSaveProject}
-            onCancel={() => setEditingProject(null)}
+            onCancel={() => setForm(null)}
           />
         </div>
       )}
@@ -45,8 +62,13 @@ export default function ProjectList({ initialProjects }) {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <li key={project.id}>
-              {/* recieve the project and the editin project method via props */}
-              <ProjectCard project={project} onEdit={setEditingProject} />
+              {/* recieve the project and set form method via props */}
+              <ProjectCard
+                project={project}
+                onEdit={(selectedProject) =>
+                  setForm({ project: selectedProject })
+                }
+              />
             </li>
           ))}
         </ul>
