@@ -1,0 +1,16 @@
+# Dependencies
+/node_modules/
+
+# Next.js build and static export
+/.next/
+/out/
+
+# Local environment variables and credentials
+.env*
+!.env.example
+
+# npm debug logs
+npm-debug.log*
+
+# macOS files
+.DS_Store
