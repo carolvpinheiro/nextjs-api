@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ProjectCard from "./ProjectCard";
 import ProjectForm from "./ProjectForm";
-import { updateProject, deleteProject } from "../lib/projects";
+import { updateProject, deleteProject, createProject } from "../lib/projects";
 
 // recieve the initial projects via props
 export default function ProjectList({ initialProjects }) {
@@ -13,16 +13,19 @@ export default function ProjectList({ initialProjects }) {
   const [form, setForm] = useState(null);
   // store the error message to display if a project cannot be deleted
   const [deleteError, setDeleteError] = useState("");
+  // state to creation notice
+  const [createNotice, setCreateNotice] = useState("");
 
   async function handleSaveProject(values) {
     const editingProject = form.project;
+    // use the session saved by the login page to authenticate the update
+    const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+    if (!session?.token) {
+      throw new Error("Please sign in to edit this project.");
+    }
+    setCreateNotice("");
 
     if (editingProject) {
-      // use the session saved by the login page to authenticate the update
-      const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
-      if (!session?.token) {
-        throw new Error("Please sign in to edit this project.");
-      }
       // send the edited values to the API with the project ID and session token,
       // wait for the update to succeed before changing the project card
       await updateProject(editingProject.id, values, session.token);
@@ -33,15 +36,26 @@ export default function ProjectList({ initialProjects }) {
           project.id === editingProject.id ? { ...project, ...values } : project
         )
       );
-    } else {
-      // generate a temporary ID until the API provides one
-      const randomId = crypto.getRandomValues(new Uint32Array(4)).join("-");
-      const newProject = { ...values, id: `mock-${randomId}` };
-
-      setProjects((currentProjects) => [newProject, ...currentProjects]);
+      setForm(null);
+      return;
     }
 
+    await createProject(values, session.token);
     setForm(null);
+
+    // The create response may only confirm acceptance, so I reload the list for real IDs
+    try {
+      const loadedProjects = await listProjects(session.token);
+      setProjects(loadedProjects);
+      setCreateNotice(
+        "Project request accepted. Refresh if it is not listed yet."
+      );
+    } catch {
+      // The POST already succeeded, so I report the refresh failure separately
+      setCreateNotice(
+        "Project request accepted, but the list could not be refreshed."
+      );
+    }
   }
 
   async function handleDeleteProject(project) {
@@ -76,6 +90,11 @@ export default function ProjectList({ initialProjects }) {
 
   return (
     <>
+      {createNotice && (
+        <p role="status" className="mb-4 text-sm text-[#21665E]">
+          {createNotice}
+        </p>
+      )}
       <button
         type="button"
         onClick={() => setForm({ project: null })}
