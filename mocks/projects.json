@@ -1,0 +1,17 @@
+[
+  {
+    "id": "project-1",
+    "name": "Website Redesign",
+    "description": "Update the homepage and improve the mobile navigation."
+  },
+  {
+    "id": "project-2",
+    "name": "Customer Feedback Portal",
+    "description": "Build a portal for customers to submit and track feedback."
+  },
+  {
+    "id": "project-3",
+    "name": "November Release",
+    "description": "Coordinate testing, documentation and release tasks."
+  }
+]
