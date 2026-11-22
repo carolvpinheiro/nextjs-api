@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ProjectCard from "./ProjectCard";
 import ProjectForm from "./ProjectForm";
-import { updateProject } from "../lib/projects";
+import { updateProject, deleteProject } from "../lib/projects";
 
 // recieve the initial projects via props
 export default function ProjectList({ initialProjects }) {
@@ -11,6 +11,8 @@ export default function ProjectList({ initialProjects }) {
   const [projects, setProjects] = useState(initialProjects);
   // use null when the form is closed and store the project when editing
   const [form, setForm] = useState(null);
+  // store the error message to display if a project cannot be deleted
+  const [deleteError, setDeleteError] = useState("");
 
   async function handleSaveProject(values) {
     const editingProject = form.project;
@@ -42,17 +44,34 @@ export default function ProjectList({ initialProjects }) {
     setForm(null);
   }
 
-  function handleDeleteProject(project) {
-    const confirmed = window.confirm(`Delete "${project.name}"?`);
-    if (!confirmed) return;
-    // keep every project except the one selected for deletion
-    setProjects((currentProjects) =>
-      currentProjects.filter((item) => item.id !== project.id)
-    );
-    // close the edit form if it belongs to the deleted project
-    setForm((currentForm) =>
-      currentForm?.project?.id === project.id ? null : currentForm
-    );
+  async function handleDeleteProject(project) {
+    if (!window.confirm(`Delete "${project.name}"?`)) return;
+    setDeleteError("");
+
+    try {
+      // only call the API for projects that already exist in Laravel
+      if (!String(project.id).startsWith("mock-")) {
+        const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+        if (!session?.token) {
+          throw new Error("Please sign in to delete this project.");
+        }
+
+        await deleteProject(project.id, session.token);
+      }
+
+      // remove the card after the API confirms the deletion.
+      setProjects((currentProjects) =>
+        currentProjects.filter((item) => item.id !== project.id)
+      );
+
+      setForm((currentForm) =>
+        currentForm?.project?.id === project.id ? null : currentForm
+      );
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Could not delete project."
+      );
+    }
   }
 
   return (
@@ -85,6 +104,11 @@ export default function ProjectList({ initialProjects }) {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <li key={project.id}>
+              {deleteError && (
+                <p role="alert" className="mb-4 text-sm text-red-700">
+                  {deleteError}
+                </p>
+              )}
               {/* recieve the project and set form method via props */}
               <ProjectCard
                 project={project}
