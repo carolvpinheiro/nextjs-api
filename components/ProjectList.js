@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ProjectCard from "./ProjectCard";
 import ProjectForm from "./ProjectForm";
+import { updateProject } from "../lib/projects";
 
 // recieve the initial projects via props
 export default function ProjectList({ initialProjects }) {
@@ -11,10 +12,19 @@ export default function ProjectList({ initialProjects }) {
   // use null when the form is closed and store the project when editing
   const [form, setForm] = useState(null);
 
-  function handleSaveProject(values) {
+  async function handleSaveProject(values) {
     const editingProject = form.project;
 
     if (editingProject) {
+      // use the session saved by the login page to authenticate the update
+      const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+      if (!session?.token) {
+        throw new Error("Please sign in to edit this project.");
+      }
+      // send the edited values to the API with the project ID and session token,
+      // wait for the update to succeed before changing the project card
+      await updateProject(editingProject.id, values, session.token);
+
       // update the selected project and preserve its existing fields
       setProjects((currentProjects) =>
         currentProjects.map((project) =>
