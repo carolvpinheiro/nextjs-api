@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getProject } from "../../../lib/projects";
+import ProjectTasks from "../../../components/ProjectTasks";
 
 export default function ProjectDetailsPage() {
   // read the project ID from the [id] segment of the current URL
@@ -78,6 +79,7 @@ export default function ProjectDetailsPage() {
           </p>
         </article>
       )}
+      {project && <ProjectTasks key={id} projectId={id} />}
     </section>
   );
 }
