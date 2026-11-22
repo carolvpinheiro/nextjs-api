@@ -1,5 +1,6 @@
 import PencilIcon from "./icons/PencilIcon";
 import TrashIcon from "./icons/TrashIcon";
+import Link from "next/link";
 
 // recieve the current project and the onEdit method to set it
 export default function ProjectCard({ project, onEdit, onDelete }) {
@@ -7,7 +8,12 @@ export default function ProjectCard({ project, onEdit, onDelete }) {
     <article className="h-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <h2 className="min-w-0 break-words text-lg font-semibold">
-          {project.name}
+          <Link
+            href={`/projects/${encodeURIComponent(project.id)}`}
+            className="hover:underline"
+          >
+            {project.name}
+          </Link>
         </h2>
         <div className="flex shrink-0 gap-1">
           <button
