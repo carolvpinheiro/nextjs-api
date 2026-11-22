@@ -18,36 +18,50 @@ export default function MainLayout({ children }) {
   return (
     <div className="min-h-dvh bg-[#FAF8F5] text-[#30243A] md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
       {/* show navigation at the top on mobile and sidebar for larger screens */}
-      <aside className="bg-[#174C48] px-5 py-4 text-[#F4A394] md:sticky md:top-0 md:h-dvh md:py-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 md:h-full md:flex-col md:items-stretch md:justify-start">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-xl font-bold"
-          >
-            <Image src="/icon.svg" alt="" width={20} height={20} unoptimized />
-            JamJar
-          </Link>
+      <aside className="bg-[#174C48] px-4 py-4 md:sticky md:top-0 md:h-dvh md:py-6">
+        <div className="flex flex-col gap-4 md:h-full">
+          <div className="border-b border-white/15 px-3 pb-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-md text-xl font-bold text-[#DA9085] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              <Image
+                src="/icon.svg"
+                alt=""
+                width={20}
+                height={20}
+                unoptimized
+              />
+              JamJar
+            </Link>
+          </div>
 
-          <nav
-            aria-label="Main navigation"
-            className="md:mt-4 md:flex md:flex-1 md:flex-col"
-          >
+          <nav aria-label="Main navigation" className="flex flex-col md:flex-1">
             <ul className="flex flex-wrap gap-2 md:flex-1 md:flex-col">
               {navigation.map(({ href, label }) => {
-                const isActive = pathname === href;
+                const isCurrentPage = pathname === href;
+
+                // keep Projects highlighted on its detail pages
+                const isActive =
+                  isCurrentPage ||
+                  (href === "/projects" && pathname.startsWith("/projects/"));
 
                 return (
                   <li
                     key={href}
-                    className={href === "/login" ? "md:mt-auto" : undefined}
+                    className={
+                      href === "/login"
+                        ? "ml-auto md:ml-0 md:mt-auto"
+                        : undefined
+                    }
                   >
                     <Link
                       href={href}
-                      aria-current={isActive ? "page" : undefined}
-                      className={`block rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#F4A394] ${
+                      aria-current={isCurrentPage ? "page" : undefined}
+                      className={`flex min-h-11 items-center rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                         isActive
-                          ? "bg-[#F4A394]/10 font-semibold"
-                          : "font-medium hover:bg-[#F4A394]/10"
+                          ? "bg-[#DA9085] font-semibold text-[#30243A]"
+                          : "font-medium text-[#DA9085] hover:bg-white/10"
                       }`}
                     >
                       {label}
