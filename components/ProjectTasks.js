@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listProjectTasks } from "../lib/tasks";
+import { listProjectTasks, createTask } from "../lib/tasks";
+import TaskForm from "./TaskForm";
 
 export default function ProjectTasks({ projectId }) {
   const [tasks, setTasks] = useState(null);
   const [error, setError] = useState("");
+
+  // keep the new task form closed until the user clicks "+ New task"
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // give each task status its own label and badge colors
   const taskStatuses = {
@@ -16,6 +20,26 @@ export default function ProjectTasks({ projectId }) {
     },
     done: { label: "Done", colors: "bg-[#DDF1EB] text-[#174C48]" },
   };
+
+  async function handleCreateTask(values) {
+    const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+    if (!session?.token) {
+      throw new Error("Please sign in to create a task.");
+    }
+    await createTask(projectId, values, session.token);
+    setIsFormOpen(false);
+    setError("");
+
+    try {
+      // reload the task list after the API accepts the new task
+      const updatedTasks = await listProjectTasks(projectId, session.token);
+      setTasks(updatedTasks);
+    } catch {
+      setError(
+        "The API accepted the task, but the list could not be refreshed. Reload the page to check it."
+      );
+    }
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -49,7 +73,21 @@ export default function ProjectTasks({ projectId }) {
       <h2 id="project-tasks-heading" className="text-xl font-bold">
         Tasks
       </h2>
-
+      {isFormOpen ? (
+        <TaskForm
+          onSave={handleCreateTask}
+          onCancel={() => setIsFormOpen(false)}
+          //   users={users}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsFormOpen(true)}
+          className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48]"
+        >
+          + New task
+        </button>
+      )}
       {error ? (
         <p role="alert" className="text-red-700">
           {error}
