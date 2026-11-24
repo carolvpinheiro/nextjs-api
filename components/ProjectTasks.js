@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { listProjectTasks, createTask } from "../lib/tasks";
+import { listUsers } from "../lib/users";
 import TaskForm from "./TaskForm";
+
+// read the login token after the component mounts in the browser
+function getSessionToken() {
+  const storedSession = sessionStorage.getItem("jamjar-session");
+  return storedSession ? JSON.parse(storedSession)?.token : null;
+}
 
 export default function ProjectTasks({ projectId }) {
   const [tasks, setTasks] = useState(null);
@@ -10,6 +17,10 @@ export default function ProjectTasks({ projectId }) {
 
   // keep the new task form closed until the user clicks "+ New task"
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState("");
 
   // give each task status its own label and badge colors
   const taskStatuses = {
@@ -22,17 +33,17 @@ export default function ProjectTasks({ projectId }) {
   };
 
   async function handleCreateTask(values) {
-    const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
-    if (!session?.token) {
+    const token = getSessionToken();
+    if (!token) {
       throw new Error("Please sign in to create a task.");
     }
-    await createTask(projectId, values, session.token);
+    await createTask(projectId, values, token);
     setIsFormOpen(false);
     setError("");
 
     try {
       // reload the task list after the API accepts the new task
-      const updatedTasks = await listProjectTasks(projectId, session.token);
+      const updatedTasks = await listProjectTasks(projectId, token);
       setTasks(updatedTasks);
     } catch {
       setError(
@@ -41,18 +52,38 @@ export default function ProjectTasks({ projectId }) {
     }
   }
 
+  async function handleOpenTaskForm() {
+    setIsFormOpen(true);
+    setUsersError("");
+    setIsLoadingUsers(true);
+
+    try {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("Please sign in to create a task.");
+      }
+      // load the users when the task form opens
+      setUsers(await listUsers(token));
+    } catch (error) {
+      setUsers([]);
+      setUsersError(
+        error instanceof Error ? error.message : "Could not load assignees."
+      );
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }
+
   useEffect(() => {
     let ignore = false;
 
     async function loadTasks() {
       try {
-        // read the login token after the component mounts in the browser
-        const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
-
-        if (!session?.token) {
+        const token = getSessionToken();
+        if (!token) {
           throw new Error("Please sign in to view project tasks.");
         }
-        const loadedTasks = await listProjectTasks(projectId, session.token);
+        const loadedTasks = await listProjectTasks(projectId, token);
 
         if (!ignore) setTasks(loadedTasks);
       } catch (error) {
@@ -77,12 +108,14 @@ export default function ProjectTasks({ projectId }) {
         <TaskForm
           onSave={handleCreateTask}
           onCancel={() => setIsFormOpen(false)}
-          //   users={users}
+          users={users}
+          isLoadingUsers={isLoadingUsers}
+          usersError={usersError}
         />
       ) : (
         <button
           type="button"
-          onClick={() => setIsFormOpen(true)}
+          onClick={handleOpenTaskForm}
           className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48]"
         >
           + New task

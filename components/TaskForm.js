@@ -3,7 +3,13 @@ import { useState } from "react";
 // receive both callbacks from the parent component ProjectTasks
 // call onSave with the task name and status so ProjectTasks can send them to the API
 // call onCancel when the user clicks Cancel so ProjectTasks can close the form
-export default function TaskForm({ onSave, onCancel, users = [] }) {
+export default function TaskForm({
+  onSave,
+  onCancel,
+  users = [],
+  isLoadingUsers = false,
+  usersError = "",
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +33,13 @@ export default function TaskForm({ onSave, onCancel, users = [] }) {
 
     try {
       // pass the form values to ProjectTasks, which handles the API request
-      await onSave({ name, status });
+      await onSave({
+        name,
+        status,
+        description: fields.get("description").trim() || null,
+        due_date: fields.get("due_date").split("-").reverse().join("-") || null,
+        assigned_to: fields.get("assigned_to") || null,
+      });
     } catch (error) {
       // show the save error so the user can correct the form and try again
       setError(
@@ -92,9 +104,12 @@ export default function TaskForm({ onSave, onCancel, users = [] }) {
           <select
             name="assigned_to"
             defaultValue=""
+            disabled={isLoadingUsers || Boolean(usersError)}
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
           >
-            <option value="">Unassigned</option>
+            <option value="">
+              {isLoadingUsers ? "Loading users…" : "Unassigned"}
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.name}
@@ -102,6 +117,12 @@ export default function TaskForm({ onSave, onCancel, users = [] }) {
             ))}
           </select>
         </label>
+
+        {usersError && (
+          <p role="alert" className="text-sm text-red-700">
+            {usersError} You can still create an unassigned task.
+          </p>
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-red-700">

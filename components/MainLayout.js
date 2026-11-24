@@ -60,7 +60,7 @@ export default function MainLayout({ children }) {
                       aria-current={isCurrentPage ? "page" : undefined}
                       className={`flex min-h-11 items-center rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                         isActive
-                          ? "bg-[#DA9085] font-semibold text-[#30243A]"
+                          ? "bg-[#DA9085]/80 font-semibold text-[#30243A]"
                           : "font-medium text-[#DA9085] hover:bg-white/10"
                       }`}
                     >
