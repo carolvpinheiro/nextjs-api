@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { listProjectTasks, createTask } from "../lib/tasks";
 import { listUsers } from "../lib/users";
 import TaskForm from "./TaskForm";
@@ -136,7 +137,12 @@ export default function ProjectTasks({ projectId }) {
               key={task.id}
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E9E1E7] bg-white px-4 py-3"
             >
-              <span className="font-medium">{task.name}</span>
+              <Link
+                href={`/tasks/${encodeURIComponent(task.id)}`}
+                className="font-medium text-[#21665E] hover:underline"
+              >
+                {task.name}
+              </Link>
               <span
                 className={`rounded-full px-2.5 py-1 text-sm font-medium ${
                   taskStatuses[task.status]?.colors ??
