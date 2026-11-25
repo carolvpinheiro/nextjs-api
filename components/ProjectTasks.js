@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { listProjectTasks, createTask, updateTask } from "../lib/tasks";
 import { listUsers } from "../lib/users";
 import TaskCard from "./TaskCard";
@@ -23,6 +23,17 @@ export default function ProjectTasks({ projectId }) {
   const [users, setUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState("");
+
+  // use the useRef from react to scroll to TaskForm component
+  const formRef = useRef(null);
+  useEffect(() => {
+    if (!form?.task) return;
+    // scroll to the edit form after it has rendered
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [form]);
 
   async function handleSaveTask(values) {
     const editingTask = form.task;
@@ -147,7 +158,7 @@ export default function ProjectTasks({ projectId }) {
       </button>
 
       {form && (
-        <div>
+        <div ref={formRef} className="scroll-mt-6">
           {/* reset the form fields when a different task is selected */}
           <TaskForm
             key={form.task?.id ?? "new-task"}
