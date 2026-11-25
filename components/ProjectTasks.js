@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { listProjectTasks, createTask, updateTask } from "../lib/tasks";
+import {
+  listProjectTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../lib/tasks";
 import { listUsers } from "../lib/users";
 import TaskCard from "./TaskCard";
 import TaskForm from "./TaskForm";
@@ -23,6 +28,8 @@ export default function ProjectTasks({ projectId }) {
   const [users, setUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState("");
+
+  const [deleteError, setDeleteError] = useState("");
 
   // use the useRef from react to scroll to TaskForm component
   const formRef = useRef(null);
@@ -110,6 +117,34 @@ export default function ProjectTasks({ projectId }) {
     }
   }
 
+  async function handleDeleteTask(task) {
+    if (!window.confirm(`Delete "${task.name}"?`)) return;
+
+    setDeleteError("");
+
+    try {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("Please sign in to delete a task.");
+      }
+      await deleteTask(task.id, token);
+
+      // remove the selected card after the API accepts the request
+      setTasks((currentTasks) =>
+        currentTasks.filter((item) => item.id !== task.id)
+      );
+
+      // close the form if it is editing the deleted task
+      setForm((currentForm) =>
+        currentForm?.task?.id === task.id ? null : currentForm
+      );
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Could not delete the task."
+      );
+    }
+  }
+
   useEffect(() => {
     let ignore = false;
 
@@ -142,6 +177,12 @@ export default function ProjectTasks({ projectId }) {
       <h2 id="project-tasks-heading" className="text-xl font-bold">
         Tasks
       </h2>
+
+      {deleteError && (
+        <p role="alert" className="text-sm text-red-700">
+          {deleteError}
+        </p>
+      )}
 
       {createNotice && (
         <p role="status" className="text-sm text-[#21665E]">
@@ -184,7 +225,11 @@ export default function ProjectTasks({ projectId }) {
         <ul className="space-y-2">
           {tasks.map((task) => (
             <li key={task.id}>
-              <TaskCard task={task} onEdit={handleOpenTaskForm} />
+              <TaskCard
+                task={task}
+                onEdit={handleOpenTaskForm}
+                onDelete={handleDeleteTask}
+              />
             </li>
           ))}
         </ul>

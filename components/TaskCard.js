@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PencilIcon from "./icons/PencilIcon";
+import TrashIcon from "./icons/TrashIcon";
 
 const taskStatuses = {
   todo: { label: "To do", colors: "bg-[#EDE4F3] text-[#573866]" },
@@ -10,7 +11,7 @@ const taskStatuses = {
   done: { label: "Done", colors: "bg-[#DDF1EB] text-[#174C48]" },
 };
 
-export default function TaskCard({ task, onEdit }) {
+export default function TaskCard({ task, onEdit, onDelete }) {
   const status = taskStatuses[task.status];
 
   return (
@@ -39,6 +40,15 @@ export default function TaskCard({ task, onEdit }) {
           className="grid size-10 shrink-0 place-items-center rounded-lg text-[#30243A] hover:bg-[#30243A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#30243A]"
         >
           <PencilIcon className="size-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(task)}
+          aria-label={`Delete ${task.name}`}
+          title="Delete task"
+          className="grid size-10 shrink-0 place-items-center rounded-lg text-[#30243A] hover:bg-[#30243A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#30243A]"
+        >
+          <TrashIcon className="size-5" />
         </button>
       </div>
     </div>
