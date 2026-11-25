@@ -7,11 +7,20 @@ export default function TaskForm({
   onSave,
   onCancel,
   users = [],
+  task = null,
   isLoadingUsers = false,
   usersError = "",
 }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  // const [task, setTask] = useState(null);
+
+  const isEditing = Boolean(task);
+  // convert date format into YYYY-MM-DD to fill the input
+  const dueDate = task?.due_date ?? "";
+  const inputDueDate = /^\d{2}-\d{2}-\d{4}$/.test(dueDate)
+    ? dueDate.split("-").reverse().join("-")
+    : dueDate.slice(0, 10);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -57,7 +66,9 @@ export default function TaskForm({
       className="rounded-xl border border-[#E9E1E7] bg-white p-5"
     >
       <fieldset disabled={isSaving} className="space-y-4">
-        <legend className="mb-3 font-bold">New task</legend>
+        <legend className="mb-3 font-bold">
+          {isEditing ? "Edit task" : "New task"}
+        </legend>
 
         <label className="block text-sm font-medium">
           Task name
@@ -65,6 +76,7 @@ export default function TaskForm({
             name="name"
             required
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
+            defaultValue={task?.name ?? ""}
           />
         </label>
 
@@ -72,7 +84,7 @@ export default function TaskForm({
           Status
           <select
             name="status"
-            defaultValue="todo"
+            defaultValue={task?.status ?? "todo"}
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
           >
             <option value="todo">To do</option>
@@ -87,6 +99,7 @@ export default function TaskForm({
             name="description"
             rows={3}
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
+            defaultValue={task?.description ?? ""}
           />
         </label>
 
@@ -96,6 +109,7 @@ export default function TaskForm({
             type="date"
             name="due_date"
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
+            defaultValue={inputDueDate}
           />
         </label>
 
@@ -103,7 +117,7 @@ export default function TaskForm({
           Assignee (optional)
           <select
             name="assigned_to"
-            defaultValue=""
+            defaultValue={task?.assigned_to?.id ?? ""}
             disabled={isLoadingUsers || Boolean(usersError)}
             className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2"
           >
@@ -135,7 +149,7 @@ export default function TaskForm({
             type="submit"
             className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white disabled:opacity-60"
           >
-            {isSaving ? "Creating…" : "Create task"}
+            {isSaving ? "Saving…" : isEditing ? "Save changes" : "Create task"}
           </button>
           <button
             type="button"

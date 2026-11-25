@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { listProjectTasks, createTask } from "../lib/tasks";
+import { listProjectTasks, createTask, updateTask } from "../lib/tasks";
 import { listUsers } from "../lib/users";
+import TaskCard from "./TaskCard";
 import TaskForm from "./TaskForm";
 
 // read the login token after the component mounts in the browser
@@ -16,53 +16,77 @@ export default function ProjectTasks({ projectId }) {
   const [tasks, setTasks] = useState(null);
   const [error, setError] = useState("");
 
-  // keep the new task form closed until the user clicks "+ New task"
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  // use null when the form is closed and store the selected task when editing
+  const [form, setForm] = useState(null);
+  const [createNotice, setCreateNotice] = useState("");
 
   const [users, setUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState("");
 
-  // give each task status its own label and badge colors
-  const taskStatuses = {
-    todo: { label: "To do", colors: "bg-[#EDE4F3] text-[#573866]" },
-    in_progress: {
-      label: "In progress",
-      colors: "bg-[#FEF3C7] text-[#78350F]",
-    },
-    done: { label: "Done", colors: "bg-[#DDF1EB] text-[#174C48]" },
-  };
-
-  async function handleCreateTask(values) {
+  async function handleSaveTask(values) {
+    const editingTask = form.task;
     const token = getSessionToken();
+
     if (!token) {
-      throw new Error("Please sign in to create a task.");
+      throw new Error("Please sign in to save a task.");
     }
+
+    setCreateNotice("");
+
+    if (editingTask) {
+      // wait for the API to accept the update before changing the selected card
+      await updateTask(editingTask.id, projectId, values, token);
+
+      // the form submits an assignee ID, but task details use an assignee object
+      const assignee = values.assigned_to
+        ? users.find((user) => user.id === values.assigned_to) ??
+          editingTask.assigned_to
+        : null;
+
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === editingTask.id
+            ? { ...task, ...values, assigned_to: assignee }
+            : task
+        )
+      );
+
+      setForm(null);
+      return;
+    }
+
     await createTask(projectId, values, token);
-    setIsFormOpen(false);
-    setError("");
+    setForm(null);
 
     try {
-      // reload the task list after the API accepts the new task
-      const updatedTasks = await listProjectTasks(projectId, token);
-      setTasks(updatedTasks);
+      // reload the task list after the API accepts the new task to get its ID
+      const loadedTasks = await listProjectTasks(projectId, token);
+      setTasks(loadedTasks);
+      setError("");
+      setCreateNotice(
+        "Task request accepted. Refresh if it is not listed yet."
+      );
     } catch {
-      setError(
-        "The API accepted the task, but the list could not be refreshed. Reload the page to check it."
+      // the POST already succeeded, so report the refresh failure separately
+      setCreateNotice(
+        "Task request accepted, but the list could not be refreshed."
       );
     }
   }
 
-  async function handleOpenTaskForm() {
-    setIsFormOpen(true);
+  async function handleOpenTaskForm(task = null) {
+    setForm({ task });
     setUsersError("");
     setIsLoadingUsers(true);
 
     try {
       const token = getSessionToken();
+
       if (!token) {
-        throw new Error("Please sign in to create a task.");
+        throw new Error("Please sign in to load assignees.");
       }
+
       // load the users when the task form opens
       setUsers(await listUsers(token));
     } catch (error) {
@@ -81,9 +105,11 @@ export default function ProjectTasks({ projectId }) {
     async function loadTasks() {
       try {
         const token = getSessionToken();
+
         if (!token) {
           throw new Error("Please sign in to view project tasks.");
         }
+
         const loadedTasks = await listProjectTasks(projectId, token);
 
         if (!ignore) setTasks(loadedTasks);
@@ -105,23 +131,36 @@ export default function ProjectTasks({ projectId }) {
       <h2 id="project-tasks-heading" className="text-xl font-bold">
         Tasks
       </h2>
-      {isFormOpen ? (
-        <TaskForm
-          onSave={handleCreateTask}
-          onCancel={() => setIsFormOpen(false)}
-          users={users}
-          isLoadingUsers={isLoadingUsers}
-          usersError={usersError}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={handleOpenTaskForm}
-          className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48]"
-        >
-          + New task
-        </button>
+
+      {createNotice && (
+        <p role="status" className="text-sm text-[#21665E]">
+          {createNotice}
+        </p>
       )}
+
+      <button
+        type="button"
+        onClick={() => handleOpenTaskForm()}
+        className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48]"
+      >
+        + New task
+      </button>
+
+      {form && (
+        <div>
+          {/* reset the form fields when a different task is selected */}
+          <TaskForm
+            key={form.task?.id ?? "new-task"}
+            task={form.task}
+            onSave={handleSaveTask}
+            onCancel={() => setForm(null)}
+            users={users}
+            isLoadingUsers={isLoadingUsers}
+            usersError={usersError}
+          />
+        </div>
+      )}
+
       {error ? (
         <p role="alert" className="text-red-700">
           {error}
@@ -133,24 +172,8 @@ export default function ProjectTasks({ projectId }) {
       ) : (
         <ul className="space-y-2">
           {tasks.map((task) => (
-            <li
-              key={task.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E9E1E7] bg-white px-4 py-3"
-            >
-              <Link
-                href={`/tasks/${encodeURIComponent(task.id)}`}
-                className="font-medium text-[#21665E] hover:underline"
-              >
-                {task.name}
-              </Link>
-              <span
-                className={`rounded-full px-2.5 py-1 text-sm font-medium ${
-                  taskStatuses[task.status]?.colors ??
-                  "bg-slate-100 text-slate-700"
-                }`}
-              >
-                {taskStatuses[task.status]?.label ?? task.status}
-              </span>
+            <li key={task.id}>
+              <TaskCard task={task} onEdit={handleOpenTaskForm} />
             </li>
           ))}
         </ul>
