@@ -6,8 +6,8 @@ import {
   createTask,
   updateTask,
   deleteTask,
-} from "../lib/tasks";
-import { listUsers } from "../lib/users";
+} from "../../lib/tasks";
+import { listUsers } from "../../lib/users";
 import TaskCard from "./TaskCard";
 import TaskForm from "./TaskForm";
 

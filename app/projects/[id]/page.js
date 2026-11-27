@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getProject } from "../../../lib/projects";
-import ProjectTabs from "../../../components/ProjecTabs";
+import ProjectTabs from "../../../components/projects/ProjecTabs";
 
 export default function ProjectDetailsPage() {
   // read the project ID from the [id] segment of the current URL

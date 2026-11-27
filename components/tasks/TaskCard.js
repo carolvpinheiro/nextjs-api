@@ -1,6 +1,6 @@
 import Link from "next/link";
-import PencilIcon from "./icons/PencilIcon";
-import TrashIcon from "./icons/TrashIcon";
+import PencilIcon from "../icons/PencilIcon";
+import TrashIcon from "../icons/TrashIcon";
 
 const taskStatuses = {
   todo: { label: "To do", colors: "bg-[#EDE4F3] text-[#573866]" },

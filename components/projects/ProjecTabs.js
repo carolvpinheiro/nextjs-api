@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ProjectTasks from "./ProjectTasks";
+import ProjectTasks from "../tasks/ProjectTasks";
 
 const tabs = [
   { id: "overview", label: "Overview" },
