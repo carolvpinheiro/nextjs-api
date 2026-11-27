@@ -1,5 +1,5 @@
-import PencilIcon from "./icons/PencilIcon";
-import TrashIcon from "./icons/TrashIcon";
+import PencilIcon from "../icons/PencilIcon";
+import TrashIcon from "../icons/TrashIcon";
 import Link from "next/link";
 
 // recieve the current project and the onEdit method to set it

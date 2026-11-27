@@ -3,7 +3,11 @@
 import { useState } from "react";
 import ProjectCard from "./ProjectCard";
 import ProjectForm from "./ProjectForm";
-import { updateProject, deleteProject, createProject } from "../lib/projects";
+import {
+  updateProject,
+  deleteProject,
+  createProject,
+} from "../../lib/projects";
 
 // recieve the initial projects via props
 export default function ProjectList({ initialProjects }) {

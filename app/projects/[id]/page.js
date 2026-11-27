@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getProject } from "../../../lib/projects";
+import ProjectTabs from "../../../components/projects/ProjecTabs";
 
 export default function ProjectDetailsPage() {
   // read the project ID from the [id] segment of the current URL
@@ -68,14 +69,16 @@ export default function ProjectDetailsPage() {
       {/* show the loading message while there is no project or error to display */}
       {!error && !project && <p role="status">Loading project…</p>}
 
-      {/* how the project details once the data is available */}
+      {/* how the project tabs with the project details once the data is available */}
       {project && (
-        <article className="rounded-xl border border-[#E9E1E7] bg-white p-6 shadow-sm">
+        <article className="min-w-0 space-y-4 rounded-xl border border-[#E9E1E7] bg-white p-6 shadow-sm">
           <h1 className="break-words text-2xl font-bold">{project.name}</h1>
-          <p className="mt-3 whitespace-pre-wrap break-words text-slate-600">
-            {/* use a fallback when the description is missing or blank */}
-            {project.description?.trim() || "No description provided."}
-          </p>
+
+          <ProjectTabs
+            key={id}
+            projectId={id}
+            description={project.description}
+          />
         </article>
       )}
     </section>

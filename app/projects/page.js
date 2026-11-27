@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import ProjectList from "../../components/ProjectList";
+import ProjectList from "../../components/projects/ProjectList";
 import { listProjects } from "../../lib/projects";
 
 export default function ProjectsPage() {
