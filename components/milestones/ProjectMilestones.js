@@ -14,6 +14,7 @@ export default function ProjectMilestones({ projectId }) {
   const [error, setError] = useState("");
   const [editingMilestone, setEditingMilestone] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [completingId, setCompletingId] = useState(null);
 
   async function handleSaveMilestone(values) {
     const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
@@ -67,6 +68,55 @@ export default function ProjectMilestones({ projectId }) {
       );
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleCompleteMilestone(milestone) {
+    if (completingId || deletingId || milestone.completed_at) return;
+
+    setError("");
+    setCompletingId(milestone.id);
+
+    try {
+      const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+      if (!session?.token) {
+        throw new Error("Please sign in to complete a milestone.");
+      }
+
+      // format the UTC timestamp as YYYY-MM-DD HH:mm:ss for the API
+      const completedAt = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+
+      await updateMilestone(
+        milestone.id,
+        {
+          project_id: projectId,
+          title: milestone.title,
+          description: milestone.description ?? null,
+          due_date: milestone.due_date ?? null,
+          completed_at: completedAt,
+        },
+        session.token
+      );
+
+      // update only the selected card after the API accepts the request
+      setMilestones((currentMilestones) =>
+        currentMilestones.map((item) =>
+          item.id === milestone.id
+            ? { ...item, completed_at: completedAt }
+            : item
+        )
+      );
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not complete the milestone."
+      );
+    } finally {
+      setCompletingId(null);
     }
   }
 
@@ -143,6 +193,8 @@ export default function ProjectMilestones({ projectId }) {
                 onEdit={setEditingMilestone}
                 onDelete={handleDeleteMilestone}
                 isDeleting={deletingId === milestone.id}
+                onComplete={handleCompleteMilestone}
+                isCompleting={completingId === milestone.id}
               />
             )}
           </li>

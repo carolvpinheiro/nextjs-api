@@ -44,11 +44,21 @@ export default function MilestoneCard({
   onEdit,
   onDelete,
   isDeleting,
+  onComplete,
+  isCompleting,
 }) {
   const status = getMilestoneStatus(milestone);
+  const isCompleted = Boolean(milestone.completed_at);
+  const isBusy = isDeleting || isCompleting;
 
   return (
-    <article className="flex flex-wrap items-start gap-3 rounded-lg border border-[#E9E1E7] bg-white px-4 py-3">
+    <article
+      className={`flex flex-wrap items-start gap-3 rounded-lg border px-4 py-3 ${
+        isCompleted
+          ? "border-[#B9DCD0] bg-[#F0F9F5]"
+          : "border-[#E9E1E7] bg-white"
+      }`}
+    >
       <div className="min-w-0 flex-1">
         <h2 className="break-words font-semibold">{milestone.title}</h2>
 
@@ -73,6 +83,18 @@ export default function MilestoneCard({
           </span>
           <p className="mt-1 text-sm text-slate-600">{status.message}</p>
         </div>
+      )}
+      {!isCompleted && (
+        <button
+          type="button"
+          onClick={() => onComplete(milestone)}
+          disabled={isBusy}
+          aria-label={`Mark ${milestone.title} as complete`}
+          title="Mark as complete"
+          className="grid size-10 shrink-0 place-items-center rounded-lg text-xl font-bold text-[#21665E] hover:bg-[#DDF1EB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#21665E] disabled:opacity-50"
+        >
+          <span aria-hidden="true">✓</span>
+        </button>
       )}
       <button
         type="button"
