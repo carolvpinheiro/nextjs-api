@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ProjectTasks from "../tasks/ProjectTasks";
+import ProjectMilestones from "../milestones/ProjectMilestones";
 
 const tabs = [
   { id: "overview", label: "Overview" },
@@ -53,7 +54,12 @@ export default function ProjectTabs({ projectId, description }) {
       {/* load the task list when the user opens the Tasks section */}
       {activeTab === "tasks" && <ProjectTasks projectId={projectId} />}
 
-      {activeTab !== "overview" && activeTab !== "tasks" && (
+      {/* load the milestones list when the user opens the Tasks section */}
+      {activeTab === "milestones" && (
+        <ProjectMilestones key={projectId} projectId={projectId} />
+      )}
+
+      {(activeTab === "attachments" || activeTab === "comments") && (
         <p className="text-sm text-slate-600">
           {activeLabel} will be available here once this section is connected.
         </p>

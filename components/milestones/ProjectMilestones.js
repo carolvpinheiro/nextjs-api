@@ -1,0 +1,83 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { listProjectMilestones } from "../../lib/milestones";
+
+export default function ProjectMilestones({ projectId }) {
+  const [milestones, setMilestones] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMilestones() {
+      try {
+        const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+
+        if (!session?.token) {
+          throw new Error("Please sign in to view milestones.");
+        }
+
+        const items = await listProjectMilestones(projectId, session.token);
+
+        if (!ignore) setMilestones(items);
+      } catch (error) {
+        if (!ignore) {
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Could not load milestones."
+          );
+        }
+      }
+    }
+
+    loadMilestones();
+
+    // ignore late responses after leaving the tab or switching projects
+    return () => {
+      ignore = true;
+    };
+  }, [projectId]);
+
+  if (error) {
+    return (
+      <p role="alert" className="text-red-700">
+        {error}
+      </p>
+    );
+  }
+
+  if (milestones === null) {
+    return <p role="status">Loading milestones…</p>;
+  }
+
+  if (milestones.length === 0) {
+    return (
+      <p className="text-slate-600">This project has no milestones yet.</p>
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {milestones.map((milestone) => (
+        <li
+          key={milestone.id}
+          className="rounded-lg border border-[#E9E1E7] bg-white px-4 py-3"
+        >
+          <h2 className="break-words font-semibold">{milestone.title}</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {milestone.due_date ? (
+              <>
+                Due{" "}
+                <time dateTime={milestone.due_date}>{milestone.due_date}</time>
+              </>
+            ) : (
+              "No due date"
+            )}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
