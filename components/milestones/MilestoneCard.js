@@ -1,4 +1,5 @@
 import PencilIcon from "../icons/PencilIcon";
+import TrashIcon from "../icons/TrashIcon";
 
 const statuses = {
   completed: {
@@ -38,7 +39,12 @@ function getMilestoneStatus({ completed_at, due_date }) {
   return statuses.upcoming;
 }
 
-export default function MilestoneCard({ milestone, onEdit }) {
+export default function MilestoneCard({
+  milestone,
+  onEdit,
+  onDelete,
+  isDeleting,
+}) {
   const status = getMilestoneStatus(milestone);
 
   return (
@@ -76,6 +82,18 @@ export default function MilestoneCard({ milestone, onEdit }) {
         className="grid size-10 shrink-0 place-items-center rounded-lg text-[#30243A] hover:bg-[#30243A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#30243A]"
       >
         <PencilIcon className="size-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onDelete(milestone)}
+        disabled={isDeleting}
+        aria-label={
+          isDeleting ? "Deleting milestone" : `Delete ${milestone.title}`
+        }
+        title="Delete milestone"
+        className="grid size-10 shrink-0 place-items-center rounded-lg text-[#30243A] hover:bg-[#30243A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#30243A]"
+      >
+        <TrashIcon className="size-5" />
       </button>
     </article>
   );

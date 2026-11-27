@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listProjectMilestones, updateMilestone } from "../../lib/milestones";
+import {
+  listProjectMilestones,
+  updateMilestone,
+  deleteMilestone,
+} from "../../lib/milestones";
 import MilestoneCard from "./MilestoneCard";
 import MilestoneForm from "./MilestoneForm";
 
@@ -9,6 +13,7 @@ export default function ProjectMilestones({ projectId }) {
   const [milestones, setMilestones] = useState(null);
   const [error, setError] = useState("");
   const [editingMilestone, setEditingMilestone] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   async function handleSaveMilestone(values) {
     const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
@@ -35,6 +40,34 @@ export default function ProjectMilestones({ projectId }) {
       )
     );
     setEditingMilestone(null);
+  }
+
+  async function handleDeleteMilestone(milestone) {
+    if (deletingId || !window.confirm(`Delete "${milestone.title}"?`)) return;
+
+    setError("");
+    setDeletingId(milestone.id);
+
+    try {
+      const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+      if (!session?.token) {
+        throw new Error("Please sign in to delete a milestone.");
+      }
+      await deleteMilestone(milestone.id, session.token);
+
+      // remove only the selected milestone after the API accepts the request
+      setMilestones((currentMilestones) =>
+        currentMilestones.filter((item) => item.id !== milestone.id)
+      );
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not delete the milestone."
+      );
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   useEffect(() => {
@@ -70,7 +103,7 @@ export default function ProjectMilestones({ projectId }) {
     };
   }, [projectId]);
 
-  if (error) {
+  if (error && milestones === null) {
     return (
       <p role="alert" className="text-red-700">
         {error}
@@ -89,20 +122,32 @@ export default function ProjectMilestones({ projectId }) {
   }
 
   return (
-    <ul className="space-y-2">
-      {milestones.map((milestone) => (
-        <li key={milestone.id}>
-          {editingMilestone?.id === milestone.id ? (
-            <MilestoneForm
-              milestone={milestone}
-              onSave={handleSaveMilestone}
-              onCancel={() => setEditingMilestone(null)}
-            />
-          ) : (
-            <MilestoneCard milestone={milestone} onEdit={setEditingMilestone} />
-          )}
-        </li>
-      ))}
-    </ul>
+    <>
+      {error && (
+        <p role="alert" className="mb-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+      <ul className="space-y-2">
+        {milestones.map((milestone) => (
+          <li key={milestone.id}>
+            {editingMilestone?.id === milestone.id ? (
+              <MilestoneForm
+                milestone={milestone}
+                onSave={handleSaveMilestone}
+                onCancel={() => setEditingMilestone(null)}
+              />
+            ) : (
+              <MilestoneCard
+                milestone={milestone}
+                onEdit={setEditingMilestone}
+                onDelete={handleDeleteMilestone}
+                isDeleting={deletingId === milestone.id}
+              />
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
