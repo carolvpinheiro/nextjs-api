@@ -1,3 +1,5 @@
+import PencilIcon from "../icons/PencilIcon";
+
 const statuses = {
   completed: {
     label: "Completed",
@@ -36,7 +38,7 @@ function getMilestoneStatus({ completed_at, due_date }) {
   return statuses.upcoming;
 }
 
-export default function MilestoneCard({ milestone }) {
+export default function MilestoneCard({ milestone, onEdit }) {
   const status = getMilestoneStatus(milestone);
 
   return (
@@ -66,6 +68,15 @@ export default function MilestoneCard({ milestone }) {
           <p className="mt-1 text-sm text-slate-600">{status.message}</p>
         </div>
       )}
+      <button
+        type="button"
+        onClick={() => onEdit(milestone)}
+        aria-label={`Edit ${milestone.title}`}
+        title="Edit milestone"
+        className="grid size-10 shrink-0 place-items-center rounded-lg text-[#30243A] hover:bg-[#30243A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#30243A]"
+      >
+        <PencilIcon className="size-5" />
+      </button>
     </article>
   );
 }
