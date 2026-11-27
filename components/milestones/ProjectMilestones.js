@@ -5,6 +5,7 @@ import {
   listProjectMilestones,
   updateMilestone,
   deleteMilestone,
+  createMilestone,
 } from "../../lib/milestones";
 import MilestoneCard from "./MilestoneCard";
 import MilestoneForm from "./MilestoneForm";
@@ -15,6 +16,7 @@ export default function ProjectMilestones({ projectId }) {
   const [editingMilestone, setEditingMilestone] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [completingId, setCompletingId] = useState(null);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
 
   async function handleSaveMilestone(values) {
     const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
@@ -120,6 +122,28 @@ export default function ProjectMilestones({ projectId }) {
     }
   }
 
+  async function handleCreateMilestone(values) {
+    const session = JSON.parse(sessionStorage.getItem("jamjar-session"));
+
+    if (!session?.token) {
+      throw new Error("Please sign in to create a milestone.");
+    }
+    setError("");
+    await createMilestone(projectId, values, session.token);
+    setIsCreateFormOpen(false);
+
+    try {
+      // reload the list to get the ID assigned by the API
+      const items = await listProjectMilestones(projectId, session.token);
+      setMilestones(items);
+    } catch {
+      // the POST already succeeded, so report the refresh failure separately
+      setError(
+        "Milestone request accepted, but the list could not be refreshed. Reload the page to check it."
+      );
+    }
+  }
+
   useEffect(() => {
     let ignore = false;
 
@@ -165,12 +189,6 @@ export default function ProjectMilestones({ projectId }) {
     return <p role="status">Loading milestones…</p>;
   }
 
-  if (milestones.length === 0) {
-    return (
-      <p className="text-slate-600">This project has no milestones yet.</p>
-    );
-  }
-
   return (
     <>
       {error && (
@@ -178,28 +196,53 @@ export default function ProjectMilestones({ projectId }) {
           {error}
         </p>
       )}
-      <ul className="space-y-2">
-        {milestones.map((milestone) => (
-          <li key={milestone.id}>
-            {editingMilestone?.id === milestone.id ? (
-              <MilestoneForm
-                milestone={milestone}
-                onSave={handleSaveMilestone}
-                onCancel={() => setEditingMilestone(null)}
-              />
-            ) : (
-              <MilestoneCard
-                milestone={milestone}
-                onEdit={setEditingMilestone}
-                onDelete={handleDeleteMilestone}
-                isDeleting={deletingId === milestone.id}
-                onComplete={handleCompleteMilestone}
-                isCompleting={completingId === milestone.id}
-              />
-            )}
-          </li>
-        ))}
-      </ul>
+      {isCreateFormOpen ? (
+        <MilestoneForm
+          onSave={handleCreateMilestone}
+          onCancel={() => setIsCreateFormOpen(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setEditingMilestone(null);
+            setIsCreateFormOpen(true);
+          }}
+          className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white hover:bg-[#174C48]"
+        >
+          + New milestone
+        </button>
+      )}
+
+      {milestones.length === 0 ? (
+        <p className="text-slate-600">This project has no milestones yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {milestones.map((milestone) => (
+            <li key={milestone.id}>
+              {editingMilestone?.id === milestone.id ? (
+                <MilestoneForm
+                  milestone={milestone}
+                  onSave={handleSaveMilestone}
+                  onCancel={() => setEditingMilestone(null)}
+                />
+              ) : (
+                <MilestoneCard
+                  milestone={milestone}
+                  onEdit={(selectedMilestone) => {
+                    setIsCreateFormOpen(false);
+                    setEditingMilestone(selectedMilestone);
+                  }}
+                  onDelete={handleDeleteMilestone}
+                  isDeleting={deletingId === milestone.id}
+                  onComplete={handleCompleteMilestone}
+                  isCompleting={completingId === milestone.id}
+                />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

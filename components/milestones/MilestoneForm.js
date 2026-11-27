@@ -3,7 +3,7 @@ import { useState } from "react";
 const fieldClass =
   "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2";
 
-export default function MilestoneForm({ milestone, onSave, onCancel }) {
+export default function MilestoneForm({ milestone = null, onSave, onCancel }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,13 +42,15 @@ export default function MilestoneForm({ milestone, onSave, onCancel }) {
       className="rounded-xl border border-[#E9E1E7] bg-white p-5"
     >
       <fieldset disabled={isSaving} className="space-y-4">
-        <legend className="mb-3 font-bold">Edit milestone</legend>
+        <legend className="mb-3 font-bold">
+          {milestone ? "Edit milestone" : "New milestone"}
+        </legend>
 
         <label className="block text-sm font-medium">
           Title
           <input
             name="title"
-            defaultValue={milestone.title}
+            defaultValue={milestone?.title}
             required
             className={fieldClass}
           />
@@ -58,7 +60,7 @@ export default function MilestoneForm({ milestone, onSave, onCancel }) {
           Description (optional)
           <textarea
             name="description"
-            defaultValue={milestone.description ?? ""}
+            defaultValue={milestone?.description ?? ""}
             rows={3}
             className={fieldClass}
           />
@@ -69,7 +71,7 @@ export default function MilestoneForm({ milestone, onSave, onCancel }) {
           <input
             type="date"
             name="due_date"
-            defaultValue={milestone.due_date ?? ""}
+            defaultValue={milestone?.due_date ?? ""}
             className={fieldClass}
           />
         </label>
@@ -85,7 +87,11 @@ export default function MilestoneForm({ milestone, onSave, onCancel }) {
             type="submit"
             className="rounded-lg bg-[#21665E] px-4 py-2 font-medium text-white disabled:opacity-60"
           >
-            {isSaving ? "Saving…" : "Save changes"}
+            {isSaving
+              ? "Saving…"
+              : milestone
+              ? "Save changes"
+              : "Create milestone"}
           </button>
           <button
             type="button"
