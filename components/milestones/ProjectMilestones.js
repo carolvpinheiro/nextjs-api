@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { listProjectMilestones } from "../../lib/milestones";
+import MilestoneCard from "./MilestoneCard";
 
 export default function ProjectMilestones({ projectId }) {
   const [milestones, setMilestones] = useState(null);
@@ -61,21 +62,8 @@ export default function ProjectMilestones({ projectId }) {
   return (
     <ul className="space-y-2">
       {milestones.map((milestone) => (
-        <li
-          key={milestone.id}
-          className="rounded-lg border border-[#E9E1E7] bg-white px-4 py-3"
-        >
-          <h2 className="break-words font-semibold">{milestone.title}</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {milestone.due_date ? (
-              <>
-                Due{" "}
-                <time dateTime={milestone.due_date}>{milestone.due_date}</time>
-              </>
-            ) : (
-              "No due date"
-            )}
-          </p>
+        <li key={milestone.id}>
+          <MilestoneCard milestone={milestone} />
         </li>
       ))}
     </ul>
